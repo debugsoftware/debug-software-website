@@ -1,3 +1,8 @@
 // Constantes da aplicação
 export const APP_NAME = "Debug Software";
 export const APP_DESCRIPTION = "Soluções em IA e Automações";
+
+// Placeholder para compatibilidade com hooks do template
+export function getLoginUrl(): string {
+  return "/";
+}
