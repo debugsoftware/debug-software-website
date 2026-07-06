@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente de deploy"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest version tag
+        id: version
+        run: |
+          TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "latest")
+          echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "Deploying ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} to ${{ inputs.environment }}"
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+            docker stop debug-software-website-${{ inputs.environment }} 2>/dev/null || true
+            docker rm debug-software-website-${{ inputs.environment }} 2>/dev/null || true
+            docker run -d \
+              --name debug-software-website-${{ inputs.environment }} \
+              --restart unless-stopped \
+              --network traefik-network \
+              --label "traefik.enable=true" \
+              --label "traefik.http.routers.debug-website-${{ inputs.environment }}.rule=Host(\`${{ vars.DOMAIN }}\`)" \
+              --label "traefik.http.routers.debug-website-${{ inputs.environment }}.entrypoints=websecure" \
+              --label "traefik.http.routers.debug-website-${{ inputs.environment }}.tls.certresolver=letsencrypt" \
+              --label "traefik.http.services.debug-website-${{ inputs.environment }}.loadbalancer.server.port=3000" \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+            echo "Deploy complete!"

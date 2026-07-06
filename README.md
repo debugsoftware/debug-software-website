@@ -17,25 +17,26 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 
 ## Seções
 
-| Seção | Descrição |
-|-------|-----------|
-| **Header** | Navegação fixa com glassmorphism e logo |
-| **Hero** | Logo proeminente, headline impactante e call-to-action |
+| Seção        | Descrição                                               |
+| ------------ | ------------------------------------------------------- |
+| **Header**   | Navegação fixa com glassmorphism e logo                 |
+| **Hero**     | Logo proeminente, headline impactante e call-to-action  |
 | **Soluções** | Cards destacando IA, Automações e Soluções Customizadas |
-| **Sobre** | Descrição profissional da empresa com valores |
-| **Contato** | Formulário de contato e informações de telefone/e-mail |
-| **Footer** | Dados completos da empresa (CNPJ, endereço, telefone) |
+| **Sobre**    | Descrição profissional da empresa com valores           |
+| **Contato**  | Formulário de contato e informações de telefone/e-mail  |
+| **Footer**   | Dados completos da empresa (CNPJ, endereço, telefone)   |
 
 ## Stack Tecnológico
 
-| Tecnologia | Versão |
-|------------|--------|
-| React | 19 |
-| TypeScript | 5.6 |
-| Tailwind CSS | 4 |
-| Framer Motion | 12 |
-| Vite | 7 |
-| Docker | Multi-stage |
+| Tecnologia    | Versão      |
+| ------------- | ----------- |
+| React         | 19          |
+| TypeScript    | 5.6         |
+| Tailwind CSS  | 4           |
+| Framer Motion | 12          |
+| Vite          | 7           |
+| Docker        | Multi-stage |
+| Husky         | 9           |
 
 ## Estrutura de Arquivos
 
@@ -43,7 +44,11 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # CI: lint, build, test em PRs
-│       └── release.yml         # Release: semantic version + Docker
+│       ├── release.yml         # Release: semantic version + Docker
+│       └── deploy.yml          # Deploy manual: staging/production
+├── .husky/
+│   ├── commit-msg              # Hook: valida conventional commits
+│   └── pre-commit              # Hook: lint-staged (prettier)
 ├── client/src/
 │   ├── components/
 │   │   ├── Header.tsx          # Navegação fixa
@@ -71,38 +76,49 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 ```
 PR → main         : CI (lint commits + build + test)
 merge → main      : Release (build + test + semantic version + changelog + Docker push)
+manual trigger    : Deploy (staging ou production via VPS + Traefik)
 ```
 
 ### Workflow CI (`ci.yml`)
 
 Executado em **pull requests** e **pushes** para a branch `main`:
 
-| Job | Descrição |
-|-----|-----------|
-| **Lint Commits** | Valida mensagens de commit com commitlint (apenas em PRs) |
-| **Build & Type Check** | Compila TypeScript e gera build de produção |
-| **Tests** | Executa suíte de testes com Vitest |
+| Job                    | Descrição                                                 |
+| ---------------------- | --------------------------------------------------------- |
+| **Lint Commits**       | Valida mensagens de commit com commitlint (apenas em PRs) |
+| **Build & Type Check** | Compila TypeScript e gera build de produção               |
+| **Tests**              | Executa suíte de testes com Vitest                        |
 
 ### Workflow Release (`release.yml`)
 
 Executado apenas no **merge para main**:
 
-| Job | Descrição |
-|-----|-----------|
-| **Build & Test** | Validação completa antes do release |
+| Job                  | Descrição                                                                      |
+| -------------------- | ------------------------------------------------------------------------------ |
+| **Build & Test**     | Validação completa antes do release                                            |
 | **Semantic Release** | Gera próxima versão (SemVer), atualiza CHANGELOG.md, cria tag e GitHub Release |
-| **Docker** | Build multi-stage e push para GitHub Container Registry (ghcr.io) |
+| **Docker**           | Build multi-stage e push para GitHub Container Registry (ghcr.io)              |
+
+### Workflow Deploy (`deploy.yml`)
+
+Executado **manualmente** via `workflow_dispatch`:
+
+| Parâmetro       | Opções                    |
+| --------------- | ------------------------- |
+| **environment** | `staging` ou `production` |
+
+O deploy conecta via SSH na VPS Hostinger, faz pull da imagem Docker e recria o container com labels do Traefik para roteamento automático com TLS.
 
 ### Versionamento Semântico
 
 O versionamento segue o padrão [Semantic Versioning 2.0.0](https://semver.org/):
 
-| Tipo de Commit | Incremento de Versão |
-|----------------|---------------------|
-| `feat:` | Minor (1.x.0) |
-| `fix:`, `perf:`, `refactor:` | Patch (1.0.x) |
-| `BREAKING CHANGE:` | Major (x.0.0) |
-| `docs:`, `style:`, `chore:`, `ci:`, `test:` | Sem release |
+| Tipo de Commit                              | Incremento de Versão |
+| ------------------------------------------- | -------------------- |
+| `feat:`                                     | Minor (1.x.0)        |
+| `fix:`, `perf:`, `refactor:`                | Patch (1.0.x)        |
+| `BREAKING CHANGE:`                          | Major (x.0.0)        |
+| `docs:`, `style:`, `chore:`, `ci:`, `test:` | Sem release          |
 
 ### Conventional Commits
 
@@ -126,15 +142,24 @@ git commit -m "fix(contact): corrige validação do campo e-mail"
 git commit -m "docs: atualiza README com instruções de deploy"
 ```
 
+### Git Hooks (Husky)
+
+Os hooks são instalados automaticamente via `pnpm install` (script `prepare`):
+
+| Hook           | Ação                                               |
+| -------------- | -------------------------------------------------- |
+| **commit-msg** | Valida mensagem de commit com commitlint           |
+| **pre-commit** | Executa lint-staged (Prettier nos arquivos staged) |
+
 ### Docker Image
 
 A imagem Docker é publicada no **GitHub Packages** (ghcr.io) com as seguintes tags:
 
-| Tag | Exemplo |
-|-----|---------|
-| `x.y.z` | `1.2.3` |
-| `x.y` | `1.2` |
-| `x` | `1` |
+| Tag      | Exemplo                 |
+| -------- | ----------------------- |
+| `x.y.z`  | `1.2.3`                 |
+| `x.y`    | `1.2`                   |
+| `x`      | `1`                     |
 | `latest` | Sempre a última release |
 
 **Pull da imagem:**
@@ -151,35 +176,52 @@ docker run -p 3000:3000 ghcr.io/debugsoftware/debug-software-website:latest
 
 ### Proteção da Branch Main
 
-> **Nota:** A proteção de branch requer GitHub Pro ou repositório público. Quando disponível, configurar:
+A branch `main` está protegida com as seguintes regras:
 
-- Pull Request obrigatório para merge
+- Pull Request obrigatório para merge (1 aprovação mínima)
 - Status checks obrigatórios: "Build & Type Check" e "Tests"
-- Histórico linear (squash/rebase)
+- Dismiss stale reviews ao push de novas alterações
+- Histórico linear obrigatório (squash/rebase)
 - Sem force push ou deleção
+
+### GitHub Environments
+
+| Environment    | Política de Deploy                  | Uso                    |
+| -------------- | ----------------------------------- | ---------------------- |
+| **staging**    | Branches `main` e `develop`         | Validação pré-produção |
+| **production** | Apenas branches protegidas (`main`) | Ambiente final         |
+
+**Variáveis e Secrets necessários por environment:**
+
+| Nome          | Tipo     | Descrição                                            |
+| ------------- | -------- | ---------------------------------------------------- |
+| `VPS_HOST`    | Variable | IP ou hostname da VPS Hostinger                      |
+| `VPS_USER`    | Variable | Usuário SSH para deploy                              |
+| `VPS_SSH_KEY` | Secret   | Chave SSH privada para acesso à VPS                  |
+| `DOMAIN`      | Variable | Domínio do ambiente (ex: `www.debugsoftware.com.br`) |
 
 ## Design
 
 O design segue a abordagem **Gradient Cosmos** com paleta extraída diretamente da logo da empresa:
 
-| Elemento | Cor |
-|----------|-----|
-| Background | `#0a0a1a` |
-| Gradiente primário | `#7b2ff7` → `#00b4d8` |
-| Texto principal | `#ffffff` |
-| Texto secundário | `rgba(255, 255, 255, 0.50)` |
-| Bordas | `rgba(255, 255, 255, 0.08)` |
+| Elemento           | Cor                         |
+| ------------------ | --------------------------- |
+| Background         | `#0a0a1a`                   |
+| Gradiente primário | `#7b2ff7` → `#00b4d8`       |
+| Texto principal    | `#ffffff`                   |
+| Texto secundário   | `rgba(255, 255, 255, 0.50)` |
+| Bordas             | `rgba(255, 255, 255, 0.08)` |
 
 **Tipografia:** Space Grotesk (display) + Inter (body)
 
 ## Dados da Empresa
 
-| Campo | Valor |
-|-------|-------|
-| Razão Social | DEBUG SOFTWARE LTDA |
-| CNPJ | 46.428.797/0001-23 |
-| Endereço | Av. Paulista, nº 1636, Conjunto 4, Pavimento 15, Bela Vista, São Paulo-SP |
-| Telefone | (91) 98051-4660 |
+| Campo        | Valor                                                                     |
+| ------------ | ------------------------------------------------------------------------- |
+| Razão Social | DEBUG SOFTWARE LTDA                                                       |
+| CNPJ         | 46.428.797/0001-23                                                        |
+| Endereço     | Av. Paulista, nº 1636, Conjunto 4, Pavimento 15, Bela Vista, São Paulo-SP |
+| Telefone     | (91) 98051-4660                                                           |
 
 ## Desenvolvimento
 
@@ -190,15 +232,26 @@ pnpm dev
 
 **Scripts disponíveis:**
 
-| Script | Descrição |
-|--------|-----------|
-| `pnpm dev` | Servidor de desenvolvimento com HMR |
-| `pnpm build` | Build de produção |
-| `pnpm check` | Type check com TypeScript |
-| `pnpm test` | Executa testes com Vitest |
-| `pnpm format` | Formata código com Prettier |
-| `pnpm lint:commits` | Valida último commit |
+| Script              | Descrição                           |
+| ------------------- | ----------------------------------- |
+| `pnpm dev`          | Servidor de desenvolvimento com HMR |
+| `pnpm build`        | Build de produção                   |
+| `pnpm check`        | Type check com TypeScript           |
+| `pnpm test`         | Executa testes com Vitest           |
+| `pnpm format`       | Formata código com Prettier         |
+| `pnpm lint:commits` | Valida último commit                |
 
 ## Deploy
 
-O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Cloudflare proxy. A imagem Docker é publicada automaticamente no GitHub Packages após merge na main.
+O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Cloudflare proxy. A infraestrutura utiliza:
+
+| Componente        | Tecnologia                          |
+| ----------------- | ----------------------------------- |
+| Cloud             | Hostinger VPS (Ubuntu)              |
+| Container Runtime | Docker                              |
+| Reverse Proxy     | Traefik                             |
+| TLS               | Let's Encrypt (via Traefik)         |
+| DNS               | Cloudflare (proxy)                  |
+| Registry          | GitHub Container Registry (ghcr.io) |
+
+O deploy é disparado manualmente via GitHub Actions (`workflow_dispatch`) selecionando o environment desejado (staging ou production).
