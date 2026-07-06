@@ -110,3 +110,4 @@ temp/
 .webdev/
 
 .project-config.json
+client/public/__manus__/version.json
