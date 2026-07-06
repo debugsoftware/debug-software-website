@@ -6,6 +6,15 @@ Website informativo de página única para a **Debug Software LTDA**, empresa es
 
 Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo escuro com gradientes luminosos de roxo a ciano, glassmorphism e animações sutis. Totalmente responsivo para desktop e mobile.
 
+## Funcionalidades
+
+- Animações suaves de entrada ao rolar (scroll-triggered) com Framer Motion
+- Efeitos de hover elaborados nos cards de soluções (glow, shimmer, scale)
+- Animações staggered no hero e seções de conteúdo
+- Micro-interações nos botões (scale, shadow) e cards de contato
+- Menu mobile com animação de abertura/fechamento via AnimatePresence
+- Orbs de glow com animação de pulso contínuo no hero
+
 ## Seções
 
 | Seção | Descrição |

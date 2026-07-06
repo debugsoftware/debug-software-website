@@ -1,7 +1,7 @@
 /**
  * AboutSection — Gradient Cosmos design (refined)
  * Layout assimétrico com imagem off-center, glassmorphism nos valores
- * Headlines mais técnicas e confiantes
+ * Animações suaves de entrada ao scroll e hover nos value cards
  */
 import { motion } from "framer-motion";
 import { Shield, Zap, Users } from "lucide-react";
@@ -24,6 +24,28 @@ const values = [
   },
 ];
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const valueCardVariants = {
+  hidden: { opacity: 0, x: 30, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+    },
+  },
+};
+
 export default function AboutSection() {
   return (
     <section id="sobre" className="relative py-24 md:py-36 overflow-hidden">
@@ -36,19 +58,19 @@ export default function AboutSection() {
           {/* Image — takes 5 cols, slightly off-center */}
           <motion.div
             className="lg:col-span-5 lg:col-start-1 relative"
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -50, scale: 0.95 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
           >
-            <div className="relative rounded-2xl overflow-hidden">
+            <div className="relative rounded-2xl overflow-hidden group">
               {/* Gradient border effect */}
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-[#7b2ff7]/30 via-transparent to-[#00b4d8]/20" />
+              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-[#7b2ff7]/30 via-transparent to-[#00b4d8]/20 group-hover:from-[#7b2ff7]/40 group-hover:to-[#00b4d8]/30 transition-all duration-500" />
               <div className="relative rounded-2xl overflow-hidden">
                 <img
                   src="/manus-storage/about-company_d2be6fbe.png"
                   alt="Debug Software - Inovação e Engenharia"
-                  className="w-full h-auto object-cover"
+                  className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a1a]/40 to-transparent" />
               </div>
@@ -57,10 +79,10 @@ export default function AboutSection() {
             {/* Floating stat badge */}
             <motion.div
               className="absolute -bottom-5 -right-3 md:bottom-8 md:-right-6 bg-[#0a0a1a]/90 backdrop-blur-xl border border-white/[0.08] rounded-xl px-5 py-3.5 shadow-[0_0_40px_rgba(0,180,216,0.1)]"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
             >
               <p className="text-3xl font-bold font-display gradient-text">+20</p>
               <p className="text-xs text-white/50 mt-0.5">anos de engenharia</p>
@@ -70,10 +92,10 @@ export default function AboutSection() {
           {/* Content — takes 6 cols, offset right */}
           <motion.div
             className="lg:col-span-6 lg:col-start-7"
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
           >
             <span className="inline-block px-4 py-1.5 text-xs font-medium tracking-wider uppercase text-[#00b4d8]/80 border border-[#00b4d8]/15 rounded-full mb-5">
               Sobre Nós
@@ -94,29 +116,35 @@ export default function AboutSection() {
               código limpo, arquitetura sólida e entrega profissional.
             </p>
 
-            {/* Values — glass cards */}
-            <div className="space-y-3.5">
-              {values.map((value, index) => (
+            {/* Values — glass cards with stagger animation */}
+            <motion.div
+              className="space-y-3.5"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+            >
+              {values.map((value) => (
                 <motion.div
                   key={value.title}
-                  className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.04] transition-all duration-300"
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.1 * index }}
+                  className="group/card flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.12] hover:bg-white/[0.05] hover:shadow-[0_4px_30px_rgba(123,47,247,0.06)] transition-all duration-300 cursor-default"
+                  variants={valueCardVariants}
+                  whileHover={{ x: 6, transition: { duration: 0.2 } }}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0">
-                    <value.icon size={16} className="text-[#00b4d8]" />
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0 group-hover/card:border-[#7b2ff7]/25 group-hover/card:bg-white/[0.08] group-hover/card:scale-110 transition-all duration-300">
+                    <value.icon size={16} className="text-[#00b4d8] group-hover/card:text-[#00d4ff] transition-colors duration-300" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white mb-0.5">
+                    <h4 className="text-sm font-semibold text-white mb-0.5 group-hover/card:text-white transition-colors duration-300">
                       {value.title}
                     </h4>
-                    <p className="text-sm text-white/40">{value.description}</p>
+                    <p className="text-sm text-white/40 group-hover/card:text-white/55 transition-colors duration-300">
+                      {value.description}
+                    </p>
                   </div>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>

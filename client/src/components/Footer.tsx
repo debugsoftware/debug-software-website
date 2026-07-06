@@ -1,8 +1,9 @@
 /**
  * Footer — Gradient Cosmos design (refined)
  * Rodapé institucional com dados completos, layout assimétrico
- * Separação visual com gradient line
+ * Animação suave de entrada ao scroll
  */
+import { motion } from "framer-motion";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,7 +13,13 @@ export default function Footer() {
       {/* Top gradient line */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-[#7b2ff7]/30 to-transparent" />
 
-      <div className="container py-14 md:py-16">
+      <motion.div
+        className="container py-14 md:py-16"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6">
           {/* Brand — 4 cols */}
           <div className="md:col-span-4">
@@ -49,7 +56,7 @@ export default function Footer() {
               <div>
                 <dt className="text-white/30 text-xs">Telefone</dt>
                 <dd>
-                  <a href="tel:+5591980514660" className="text-white/50 hover:text-[#00b4d8] transition-colors">
+                  <a href="tel:+5591980514660" className="text-white/50 hover:text-[#00b4d8] transition-colors duration-300">
                     (91) 98051-4660
                   </a>
                 </dd>
@@ -83,7 +90,7 @@ export default function Footer() {
             CNPJ: 46.428.797/0001-23
           </p>
         </div>
-      </div>
+      </motion.div>
     </footer>
   );
 }
