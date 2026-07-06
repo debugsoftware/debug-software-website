@@ -35,24 +35,128 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 | Tailwind CSS | 4 |
 | Framer Motion | 12 |
 | Vite | 7 |
+| Docker | Multi-stage |
 
 ## Estrutura de Arquivos
 
 ```
-client/src/
-├── components/
-│   ├── Header.tsx          # Navegação fixa
-│   ├── HeroSection.tsx     # Seção principal
-│   ├── SolutionsSection.tsx # Serviços oferecidos
-│   ├── AboutSection.tsx    # Sobre a empresa
-│   ├── ContactSection.tsx  # Formulário de contato
-│   └── Footer.tsx          # Rodapé institucional
-├── pages/
-│   └── Home.tsx            # Página única compondo todas as seções
-├── App.tsx                 # Roteamento e providers
-├── index.css               # Tema e design tokens
-└── main.tsx                # Entry point
+├── .github/
+│   └── workflows/
+│       ├── ci.yml              # CI: lint, build, test em PRs
+│       └── release.yml         # Release: semantic version + Docker
+├── client/src/
+│   ├── components/
+│   │   ├── Header.tsx          # Navegação fixa
+│   │   ├── HeroSection.tsx     # Seção principal
+│   │   ├── SolutionsSection.tsx # Serviços oferecidos
+│   │   ├── AboutSection.tsx    # Sobre a empresa
+│   │   ├── ContactSection.tsx  # Formulário de contato
+│   │   └── Footer.tsx          # Rodapé institucional
+│   ├── pages/
+│   │   └── Home.tsx            # Página única compondo todas as seções
+│   ├── App.tsx                 # Roteamento e providers
+│   ├── index.css               # Tema e design tokens
+│   └── main.tsx                # Entry point
+├── Dockerfile                  # Multi-stage build para produção
+├── .dockerignore
+├── .releaserc.json             # Configuração do semantic-release
+├── commitlint.config.cjs       # Regras de conventional commits
+└── package.json
 ```
+
+## CI/CD Pipeline
+
+### Visão Geral do Fluxo
+
+```
+PR → main         : CI (lint commits + build + test)
+merge → main      : Release (build + test + semantic version + changelog + Docker push)
+```
+
+### Workflow CI (`ci.yml`)
+
+Executado em **pull requests** e **pushes** para a branch `main`:
+
+| Job | Descrição |
+|-----|-----------|
+| **Lint Commits** | Valida mensagens de commit com commitlint (apenas em PRs) |
+| **Build & Type Check** | Compila TypeScript e gera build de produção |
+| **Tests** | Executa suíte de testes com Vitest |
+
+### Workflow Release (`release.yml`)
+
+Executado apenas no **merge para main**:
+
+| Job | Descrição |
+|-----|-----------|
+| **Build & Test** | Validação completa antes do release |
+| **Semantic Release** | Gera próxima versão (SemVer), atualiza CHANGELOG.md, cria tag e GitHub Release |
+| **Docker** | Build multi-stage e push para GitHub Container Registry (ghcr.io) |
+
+### Versionamento Semântico
+
+O versionamento segue o padrão [Semantic Versioning 2.0.0](https://semver.org/):
+
+| Tipo de Commit | Incremento de Versão |
+|----------------|---------------------|
+| `feat:` | Minor (1.x.0) |
+| `fix:`, `perf:`, `refactor:` | Patch (1.0.x) |
+| `BREAKING CHANGE:` | Major (x.0.0) |
+| `docs:`, `style:`, `chore:`, `ci:`, `test:` | Sem release |
+
+### Conventional Commits
+
+Todos os commits devem seguir o padrão [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Tipos permitidos:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Exemplos:**
+
+```bash
+git commit -m "feat(hero): adiciona animação de parallax no background"
+git commit -m "fix(contact): corrige validação do campo e-mail"
+git commit -m "docs: atualiza README com instruções de deploy"
+```
+
+### Docker Image
+
+A imagem Docker é publicada no **GitHub Packages** (ghcr.io) com as seguintes tags:
+
+| Tag | Exemplo |
+|-----|---------|
+| `x.y.z` | `1.2.3` |
+| `x.y` | `1.2` |
+| `x` | `1` |
+| `latest` | Sempre a última release |
+
+**Pull da imagem:**
+
+```bash
+docker pull ghcr.io/debugsoftware/debug-software-website:latest
+```
+
+**Executar localmente:**
+
+```bash
+docker run -p 3000:3000 ghcr.io/debugsoftware/debug-software-website:latest
+```
+
+### Proteção da Branch Main
+
+> **Nota:** A proteção de branch requer GitHub Pro ou repositório público. Quando disponível, configurar:
+
+- Pull Request obrigatório para merge
+- Status checks obrigatórios: "Build & Type Check" e "Tests"
+- Histórico linear (squash/rebase)
+- Sem force push ou deleção
 
 ## Design
 
@@ -84,6 +188,17 @@ pnpm install
 pnpm dev
 ```
 
+**Scripts disponíveis:**
+
+| Script | Descrição |
+|--------|-----------|
+| `pnpm dev` | Servidor de desenvolvimento com HMR |
+| `pnpm build` | Build de produção |
+| `pnpm check` | Type check com TypeScript |
+| `pnpm test` | Executa testes com Vitest |
+| `pnpm format` | Formata código com Prettier |
+| `pnpm lint:commits` | Valida último commit |
+
 ## Deploy
 
-O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Cloudflare proxy.
+O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Cloudflare proxy. A imagem Docker é publicada automaticamente no GitHub Packages após merge na main.
