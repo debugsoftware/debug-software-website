@@ -77,4 +77,4 @@ pnpm dev
 
 ## Deploy
 
-O site é hospedado via Manus com domínio customizado `www.debugsoftware.com.br`.
+O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Cloudflare proxy.

@@ -46,7 +46,7 @@ export default function AboutSection() {
               <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-[#7b2ff7]/30 via-transparent to-[#00b4d8]/20" />
               <div className="relative rounded-2xl overflow-hidden">
                 <img
-                  src="/manus-storage/about-company_88e9dbd7.png"
+                  src="/manus-storage/about-company_d2be6fbe.png"
                   alt="Debug Software - Inovação e Engenharia"
                   className="w-full h-auto object-cover"
                 />

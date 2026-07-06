@@ -16,7 +16,7 @@ export default function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src="/manus-storage/hero-bg_e6c8eda5.png"
+          src="/manus-storage/hero-bg_c7515ff2.png"
           alt=""
           className="w-full h-full object-cover opacity-50"
         />
@@ -48,7 +48,7 @@ export default function HeroSection() {
           >
             <div className="absolute inset-0 w-24 h-24 md:w-32 md:h-32 mx-auto bg-[#7b2ff7]/25 rounded-full blur-[40px]" />
             <img
-              src="/manus-storage/logo-debug_912ef8b6.png"
+              src="/manus-storage/logo-debug_6f1e67d3.png"
               alt="Debug Software"
               className="relative w-24 h-24 md:w-32 md:h-32 mx-auto drop-shadow-[0_0_20px_rgba(123,47,247,0.3)]"
             />

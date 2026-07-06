@@ -39,7 +39,7 @@ export default function Header() {
         {/* Logo */}
         <a href="#" className="flex items-center gap-3 group">
           <img
-            src="/manus-storage/logo-debug_912ef8b6.png"
+            src="/manus-storage/logo-debug_6f1e67d3.png"
             alt="Debug Software"
             className="h-10 w-10 md:h-12 md:w-12 transition-transform duration-200 group-hover:scale-105"
           />

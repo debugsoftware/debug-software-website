@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="md:col-span-4">
             <div className="flex items-center gap-3 mb-5">
               <img
-                src="/manus-storage/logo-debug_912ef8b6.png"
+                src="/manus-storage/logo-debug_6f1e67d3.png"
                 alt="Debug Software"
                 className="w-8 h-8"
               />

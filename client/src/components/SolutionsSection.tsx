@@ -12,7 +12,7 @@ const solutions = [
     title: "Inteligência Artificial",
     description:
       "Modelos de IA sob medida para automatizar decisões, análises preditivas e processamento de linguagem natural — integrados diretamente ao fluxo do seu negócio.",
-    image: "/manus-storage/ai-solutions_b584aee5.png",
+    image: "/manus-storage/ai-solutions_274f3406.png",
     offset: "lg:translate-y-0",
   },
   {
@@ -20,7 +20,7 @@ const solutions = [
     title: "Automações Inteligentes",
     description:
       "Fluxos que eliminam tarefas repetitivas, integram sistemas e garantem operação 24/7 sem intervenção manual. Menos erro humano, mais velocidade.",
-    image: "/manus-storage/automation_63803d5b.png",
+    image: "/manus-storage/automation_147f6880.png",
     offset: "lg:translate-y-8",
   },
   {
@@ -28,7 +28,7 @@ const solutions = [
     title: "Soluções Sob Demanda",
     description:
       "Software com arquitetura escalável, integrações complexas e interfaces que simplificam o que antes exigia equipes inteiras para operar.",
-    image: "/manus-storage/custom-solutions_012a6597.png",
+    image: "/manus-storage/custom-solutions_09fa5ce3.png",
     offset: "lg:translate-y-16",
   },
 ];
