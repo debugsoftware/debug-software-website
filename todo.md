@@ -3,3 +3,7 @@
 - [x] Adicionar links no rodapé para ambas as políticas
 - [x] Implementar opção de fechar/voltar nas páginas de política
 - [x] Implementar banner de consentimento de cookies (LGPD) na primeira visita
+- [x] Atualizar Node para 24 em todos os workflows
+- [x] Corrigir Semantic Release para funcionar com branch protection (usar GH_TOKEN com permissão de bypass)
+- [x] Configurar secret GH_TOKEN no GitHub com permissão de bypass na branch protection
+- [x] Documentar requisito de GH_TOKEN no README

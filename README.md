@@ -34,10 +34,11 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 | Tecnologia    | Versão      |
 | ------------- | ----------- |
 | React         | 19          |
-| TypeScript    | 5.6         |
+| TypeScript    | 5.9         |
 | Tailwind CSS  | 4           |
 | Framer Motion | 12          |
 | Vite          | 7           |
+| Node.js       | 24          |
 | Docker        | Multi-stage |
 | Husky         | 9           |
 
@@ -194,7 +195,15 @@ A branch `main` está protegida com as seguintes regras:
 | **staging**    | Branches `main` e `develop`         | Validação pré-produção |
 | **production** | Apenas branches protegidas (`main`) | Ambiente final         |
 
-**Variáveis e Secrets necessários por environment:**
+**Secrets do repositório (obrigatórios para CI/CD):**
+
+| Nome          | Tipo     | Descrição                                                                |
+| ------------- | -------- | ------------------------------------------------------------------------ |
+| `GH_TOKEN`    | Secret   | PAT do admin com permissão `repo` para bypass da branch protection       |
+
+> O `GH_TOKEN` é necessário para que o Semantic Release consiga fazer push de tags e do CHANGELOG.md diretamente na `main`, contornando a regra de PR obrigatório. O token deve pertencer a um admin do repositório (com `enforce_admins: false`).
+
+**Variáveis e Secrets necessários por environment (deploy):**
 
 | Nome          | Tipo     | Descrição                                            |
 | ------------- | -------- | ---------------------------------------------------- |
