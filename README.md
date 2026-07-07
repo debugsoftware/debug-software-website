@@ -8,6 +8,8 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 
 ## Funcionalidades
 
+- Política de Privacidade completa (LGPD) com modal overlay
+- Política de Segurança da Informação com modal overlay
 - Animações suaves de entrada ao rolar (scroll-triggered) com Framer Motion
 - Efeitos de hover elaborados nos cards de soluções (glow, shimmer, scale)
 - Animações staggered no hero e seções de conteúdo
@@ -17,14 +19,15 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 
 ## Seções
 
-| Seção        | Descrição                                               |
-| ------------ | ------------------------------------------------------- |
-| **Header**   | Navegação fixa com glassmorphism e logo                 |
-| **Hero**     | Logo proeminente, headline impactante e call-to-action  |
-| **Soluções** | Cards destacando IA, Automações e Soluções Customizadas |
-| **Sobre**    | Descrição profissional da empresa com valores           |
-| **Contato**  | Formulário de contato e informações de telefone/e-mail  |
-| **Footer**   | Dados completos da empresa (CNPJ, endereço, telefone)   |
+| Seção         | Descrição                                               |
+| ------------- | ------------------------------------------------------- |
+| **Header**    | Navegação fixa com glassmorphism e logo                 |
+| **Hero**      | Logo proeminente, headline impactante e call-to-action  |
+| **Soluções**  | Cards destacando IA, Automações e Soluções Customizadas |
+| **Sobre**     | Descrição profissional da empresa com valores           |
+| **Contato**   | Formulário de contato e informações de telefone/e-mail  |
+| **Footer**    | Dados completos da empresa (CNPJ, endereço, telefone)   |
+| **Políticas** | Política de Privacidade (LGPD) e Política de Segurança  |
 
 ## Stack Tecnológico
 

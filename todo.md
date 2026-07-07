@@ -1,0 +1,4 @@
+- [x] Criar componente modal/página de Política de Privacidade (LGPD)
+- [x] Criar componente modal/página de Política de Segurança
+- [x] Adicionar links no rodapé para ambas as políticas
+- [x] Implementar opção de fechar/voltar nas páginas de política
