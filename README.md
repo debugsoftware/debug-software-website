@@ -105,13 +105,29 @@ Executado apenas no **merge para main**:
 
 ### Workflow Deploy (`deploy.yml`)
 
-Executado **manualmente** via `workflow_dispatch`:
+Executado de duas formas:
+
+1. **Automaticamente** — após conclusão bem-sucedida do workflow Release, faz deploy automático em **production**
+2. **Manualmente** — via `workflow_dispatch` selecionando o environment desejado
 
 | Parâmetro       | Opções                    |
 | --------------- | ------------------------- |
 | **environment** | `staging` ou `production` |
 
-O deploy conecta via SSH na VPS Hostinger, faz pull da imagem Docker e recria o container com labels do Traefik para roteamento automático com TLS.
+O deploy conecta via SSH na VPS Hostinger (82.29.62.198), faz pull da imagem Docker do ghcr.io e recria o container com docker-compose + labels do Traefik para roteamento automático com TLS (Let's Encrypt).
+
+**Fluxo completo de deploy:**
+
+```
+merge → main → Release (tag + Docker image) → Deploy automático → production
+```
+
+**Environments configurados:**
+
+| Environment    | Domínio                        | VPS Host       |
+| -------------- | ------------------------------ | -------------- |
+| **staging**    | staging.debugsoftware.com.br   | 82.29.62.198   |
+| **production** | www.debugsoftware.com.br       | 82.29.62.198   |
 
 ### Versionamento Semântico
 
@@ -260,10 +276,40 @@ O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Clou
 | Componente        | Tecnologia                          |
 | ----------------- | ----------------------------------- |
 | Cloud             | Hostinger VPS (Ubuntu)              |
-| Container Runtime | Docker                              |
+| IP                | 82.29.62.198                        |
+| Container Runtime | Docker + Docker Compose             |
 | Reverse Proxy     | Traefik                             |
 | TLS               | Let's Encrypt (via Traefik)         |
 | DNS               | Cloudflare (proxy)                  |
 | Registry          | GitHub Container Registry (ghcr.io) |
+| Web Server        | Nginx (Alpine)                      |
 
-O deploy é disparado manualmente via GitHub Actions (`workflow_dispatch`) selecionando o environment desejado (staging ou production).
+O deploy é executado automaticamente após cada release bem-sucedida (production), ou manualmente via GitHub Actions (`workflow_dispatch`) para staging ou production.
+
+### Configuração Necessária
+
+Antes do primeiro deploy, configure o secret `VPS_SSH_KEY` nos dois environments (staging e production) em:
+
+> Settings → Environments → [staging/production] → Add secret → `VPS_SSH_KEY`
+
+A chave deve ser a chave SSH privada com acesso `root` à VPS.
+
+### Estrutura na VPS
+
+```
+/opt/debug-software-website/
+├── staging/
+│   └── docker-compose.yml
+└── production/
+    └── docker-compose.yml
+```
+
+### Pré-requisitos na VPS
+
+```bash
+# Rede do Traefik (se ainda não existir)
+docker network create traefik-network
+
+# Diretórios de deploy
+mkdir -p /opt/debug-software-website/{staging,production}
+```

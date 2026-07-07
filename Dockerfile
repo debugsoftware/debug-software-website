@@ -1,5 +1,5 @@
 # Stage 1: Dependencies
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10 --activate
@@ -8,7 +8,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod=false
 
 # Stage 2: Build
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10 --activate
@@ -18,22 +18,15 @@ COPY . .
 
 RUN pnpm build
 
-# Stage 3: Production
-FROM node:22-alpine AS runner
-WORKDIR /app
+# Stage 3: Production (Nginx para servir o build estático)
+FROM nginx:alpine AS runner
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# Copia configuração customizada do Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 appuser
+# Copia o build estático
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:nodejs /app/package.json ./package.json
+EXPOSE 80
 
-USER appuser
-
-EXPOSE 3000
-
-CMD ["node", "dist/index.js"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -7,3 +7,9 @@
 - [x] Corrigir Semantic Release para funcionar com branch protection (usar GH_TOKEN com permissão de bypass)
 - [x] Configurar secret GH_TOKEN no GitHub com permissão de bypass na branch protection
 - [x] Documentar requisito de GH_TOKEN no README
+- [x] Configurar workflow de deploy automático para VPS com staging e production
+- [x] Criar docker-compose.yml para deploy com Traefik
+- [x] Configurar variables VPS_HOST e DOMAIN nos environments do GitHub
+- [x] Documentar configuração de deploy no README
+- [x] Corrigir erro de build: getLoginUrl não exportado em client/src/const.ts (era cache stale do esbuild)
+- [x] Remover docker-compose.yml local (deploy usa compose inline gerado na VPS)
