@@ -9,6 +9,7 @@ import SolutionsSection from "@/components/SolutionsSection";
 import AboutSection from "@/components/AboutSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
+import CookieBanner from "@/components/CookieBanner";
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
         <ContactSection />
       </main>
       <Footer />
+      <CookieBanner />
     </div>
   );
 }

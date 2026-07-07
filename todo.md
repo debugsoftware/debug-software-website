@@ -2,3 +2,4 @@
 - [x] Criar componente modal/página de Política de Segurança
 - [x] Adicionar links no rodapé para ambas as políticas
 - [x] Implementar opção de fechar/voltar nas páginas de política
+- [x] Implementar banner de consentimento de cookies (LGPD) na primeira visita

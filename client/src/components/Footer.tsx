@@ -4,7 +4,7 @@
  * Animação suave de entrada ao scroll
  * Links para Política de Privacidade e Política de Segurança
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import PrivacyPolicy from "./PrivacyPolicy";
 import SecurityPolicy from "./SecurityPolicy";
@@ -13,6 +13,12 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
+
+  useEffect(() => {
+    const handleOpenPrivacy = () => setShowPrivacy(true);
+    window.addEventListener("open-privacy-policy", handleOpenPrivacy);
+    return () => window.removeEventListener("open-privacy-policy", handleOpenPrivacy);
+  }, []);
 
   return (
     <>
