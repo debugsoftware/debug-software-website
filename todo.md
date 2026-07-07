@@ -13,3 +13,4 @@
 - [x] Documentar configuração de deploy no README
 - [x] Corrigir erro de build: getLoginUrl não exportado em client/src/const.ts (era cache stale do esbuild)
 - [x] Remover docker-compose.yml local (deploy usa compose inline gerado na VPS)
+- [x] Criar página 404 personalizada com identidade visual Debug Software e botão voltar
