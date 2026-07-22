@@ -374,13 +374,21 @@ jobs:
               test -f "${backup}"
               cp -p -- "${backup}" "${compose}"
               docker compose -f "${compose}" up -d --no-deps --pull never \
-                --force-recreate website
+                --force-recreate --wait --wait-timeout 120 website
+              docker compose -f "${compose}" ps website
               ;;
             first)
-              if test -f "${failed}"; then
-                docker compose -f "${failed}" stop website || true
-                docker compose -f "${failed}" rm -f website || true
+              test -f "${failed}"
+              docker compose -f "${failed}" stop website || true
+              docker compose -f "${failed}" rm -f website || true
+              remaining_containers=$(docker compose -f "${failed}" ps --all \
+                --quiet website)
+              if test -n "${remaining_containers}"; then
+                printf 'Rollback incompleto: container do serviço website permanece.\n' >&2
+                docker compose -f "${failed}" ps --all website >&2
+                exit 1
               fi
+              printf 'Rollback confirmado: nenhum container website permanece.\n'
               ;;
             *)
               printf 'Estado de rollback inválido.\n' >&2
