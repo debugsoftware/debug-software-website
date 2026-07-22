@@ -49,7 +49,7 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 │   └── workflows/
 │       ├── ci.yml              # CI: lint, build, test em PRs
 │       ├── release.yml         # Release: semantic version + Docker
-│       └── deploy.yml          # Validação do Compose de produção
+│       └── deploy.yml          # Validação e deploy manual via Tailscale
 ├── .husky/
 │   ├── commit-msg              # Hook: valida conventional commits
 │   └── pre-commit              # Hook: lint-staged (prettier)
@@ -83,6 +83,7 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 PR → main         : CI (lint commits + build + test)
 merge → main      : Release (build + test + semantic version + changelog + Docker push)
 PR em deploy/**   : Validação do Compose de produção
+workflow_dispatch: Deploy manual via Tailscale após aprovação
 ```
 
 ### Workflow CI (`ci.yml`)
@@ -107,15 +108,28 @@ Executado apenas no **merge para main**:
 
 ### Workflow Deploy (`deploy.yml`)
 
-O workflow não executa deploy e não se conecta à infraestrutura. Ele valida `deploy/production/docker-compose.yml` em pull requests que alterem `deploy/**` ou o próprio workflow. O `workflow_dispatch` permite repetir somente essa validação de forma manual.
+Em pull requests, o workflow apenas valida `deploy/production/docker-compose.yml`. O deploy somente pode ser iniciado manualmente por `workflow_dispatch` na branch `main`, após informar `deploy-production` e obter a aprovação do environment `production`.
 
-As verificações cobrem a sintaxe do Compose, a imagem fixa, a ausência de portas publicadas, o uso exclusivo da rede externa `proxy` e as configurações de domínio, rede e certificado do Traefik.
+O job manual entra na rede privada pelo Tailscale, valida o acesso SSH de `rodrigo`, instala o Compose de forma atômica e autentica temporariamente no GHCR privado com o `GITHUB_TOKEN`. A configuração Docker temporária é removida após o pull. O workflow não altera DNS ou Cloudflare.
+
+As validações cobrem a sintaxe do Compose, a imagem fixa, a ausência de portas publicadas, o uso exclusivo da rede externa `proxy`, o router principal e o redirecionamento permanente do apex para `www`.
 
 **Fluxo de entrega:**
 
 ```
-PR → validação do Compose → merge → release → deploy operacional manual
+PR → validação do Compose → merge → aprovação → deploy manual via Tailscale
 ```
+
+**Pré-requisitos do environment `production`:**
+
+| Secret                      | Finalidade                                                  |
+| --------------------------- | ----------------------------------------------------------- |
+| `TAILSCALE_OAUTH_CLIENT_ID` | OAuth client com escopo `auth_keys` e acesso à tag `tag:ci` |
+| `TAILSCALE_OAUTH_SECRET`    | Credencial do OAuth client do Tailscale                     |
+| `VPS_SSH_PRIVATE_KEY`       | Chave restrita ao usuário `rodrigo`                         |
+| `VPS_SSH_KNOWN_HOSTS`       | Host key previamente validada de `srv723452`                |
+
+O tailnet deve permitir que `tag:ci` alcance `srv723452` somente na porta SSH necessária. Os secrets são consumidos pelo runner efêmero e nenhum valor deve ser gravado no repositório.
 
 ### Versionamento Semântico
 
@@ -248,7 +262,7 @@ O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Clou
 | Registry          | GitHub Container Registry (ghcr.io) |
 | Web Server        | Nginx (Alpine)                      |
 
-O deploy operacional é realizado manualmente por uma conexão privada Tailscale. O GitHub Actions apenas valida o arquivo Compose e não acessa a VPS nem altera containers.
+O deploy operacional é iniciado manualmente pelo GitHub Actions e acessa a VPS exclusivamente pela rede privada Tailscale. Não existe deploy automático após release ou merge.
 
 ### Estrutura na VPS
 
@@ -256,6 +270,8 @@ O deploy operacional é realizado manualmente por uma conexão privada Tailscale
 /opt/docker/debug-software-website/docker-compose.yml
 ```
 
-Esse é o caminho futuro do Compose na VPS. A definição versionada correspondente está em `deploy/production/docker-compose.yml` e utiliza somente a rede externa `proxy`, sem publicar portas no host.
+Esse é o caminho do Compose na VPS. A definição versionada correspondente está em `deploy/production/docker-compose.yml` e utiliza somente a rede externa `proxy`, sem publicar portas no host.
 
-Antes de qualquer alteração de DNS, a operação deve validar no origin que o container está saudável, que o router do Traefik está ativo para `www.debugsoftware.com.br` e que o certificado TLS foi emitido corretamente. Somente após essas verificações o DNS poderá ser alterado.
+O Compose também cria um router TLS para `debugsoftware.com.br` que redireciona permanentemente para `https://www.debugsoftware.com.br`, preservando o caminho solicitado.
+
+Antes de qualquer alteração de DNS, o workflow valida no origin que o container está saudável, que o router do Traefik responde para `www.debugsoftware.com.br` e que o certificado TLS é válido. Somente depois dessas verificações o DNS poderá ser alterado em uma operação separada e explicitamente autorizada.
