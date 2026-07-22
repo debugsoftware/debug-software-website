@@ -49,7 +49,7 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 │   └── workflows/
 │       ├── ci.yml              # CI: lint, build, test em PRs
 │       ├── release.yml         # Release: semantic version + Docker
-│       └── deploy.yml          # Deploy manual: staging/production
+│       └── deploy.yml          # Validação do Compose de produção
 ├── .husky/
 │   ├── commit-msg              # Hook: valida conventional commits
 │   └── pre-commit              # Hook: lint-staged (prettier)
@@ -67,6 +67,8 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 │   ├── index.css               # Tema e design tokens
 │   └── main.tsx                # Entry point
 ├── Dockerfile                  # Multi-stage build para produção
+├── deploy/production/
+│   └── docker-compose.yml      # Definição versionada do serviço em produção
 ├── .dockerignore
 ├── .releaserc.json             # Configuração do semantic-release
 ├── commitlint.config.cjs       # Regras de conventional commits
@@ -80,7 +82,7 @@ Site institucional moderno e minimalista com design "Gradient Cosmos" — fundo 
 ```
 PR → main         : CI (lint commits + build + test)
 merge → main      : Release (build + test + semantic version + changelog + Docker push)
-manual trigger    : Deploy (staging ou production via VPS + Traefik)
+PR em deploy/**   : Validação do Compose de produção
 ```
 
 ### Workflow CI (`ci.yml`)
@@ -105,29 +107,15 @@ Executado apenas no **merge para main**:
 
 ### Workflow Deploy (`deploy.yml`)
 
-Executado de duas formas:
+O workflow não executa deploy e não se conecta à infraestrutura. Ele valida `deploy/production/docker-compose.yml` em pull requests que alterem `deploy/**` ou o próprio workflow. O `workflow_dispatch` permite repetir somente essa validação de forma manual.
 
-1. **Automaticamente** — após conclusão bem-sucedida do workflow Release, faz deploy automático em **production**
-2. **Manualmente** — via `workflow_dispatch` selecionando o environment desejado
+As verificações cobrem a sintaxe do Compose, a imagem fixa, a ausência de portas publicadas, o uso exclusivo da rede externa `proxy` e as configurações de domínio, rede e certificado do Traefik.
 
-| Parâmetro       | Opções                    |
-| --------------- | ------------------------- |
-| **environment** | `staging` ou `production` |
-
-O deploy conecta via SSH na VPS Hostinger (82.29.62.198), faz pull da imagem Docker do ghcr.io e recria o container com docker-compose + labels do Traefik para roteamento automático com TLS (Let's Encrypt).
-
-**Fluxo completo de deploy:**
+**Fluxo de entrega:**
 
 ```
-merge → main → Release (tag + Docker image) → Deploy automático → production
+PR → validação do Compose → merge → release → deploy operacional manual
 ```
-
-**Environments configurados:**
-
-| Environment    | Domínio                        | VPS Host       |
-| -------------- | ------------------------------ | -------------- |
-| **staging**    | staging.debugsoftware.com.br   | 82.29.62.198   |
-| **production** | www.debugsoftware.com.br       | 82.29.62.198   |
 
 ### Versionamento Semântico
 
@@ -175,23 +163,16 @@ Os hooks são instalados automaticamente via `pnpm install` (script `prepare`):
 
 A imagem Docker é publicada no **GitHub Packages** (ghcr.io) com as seguintes tags:
 
-| Tag      | Exemplo                 |
-| -------- | ----------------------- |
-| `x.y.z`  | `1.2.3`                 |
-| `x.y`    | `1.2`                   |
-| `x`      | `1`                     |
-| `latest` | Sempre a última release |
+| Tag     | Exemplo |
+| ------- | ------- |
+| `x.y.z` | `1.2.3` |
+| `x.y`   | `1.2`   |
+| `x`     | `1`     |
 
 **Pull da imagem:**
 
 ```bash
-docker pull ghcr.io/debugsoftware/debug-software-website:latest
-```
-
-**Executar localmente:**
-
-```bash
-docker run -p 3000:3000 ghcr.io/debugsoftware/debug-software-website:latest
+docker pull ghcr.io/debugsoftware/debug-software-website:1.2.0
 ```
 
 ### Proteção da Branch Main
@@ -204,29 +185,13 @@ A branch `main` está protegida com as seguintes regras:
 - Histórico linear obrigatório (squash/rebase)
 - Sem force push ou deleção
 
-### GitHub Environments
+### Credencial do workflow de release
 
-| Environment    | Política de Deploy                  | Uso                    |
-| -------------- | ----------------------------------- | ---------------------- |
-| **staging**    | Branches `main` e `develop`         | Validação pré-produção |
-| **production** | Apenas branches protegidas (`main`) | Ambiente final         |
+| Nome       | Tipo   | Descrição                                                          |
+| ---------- | ------ | ------------------------------------------------------------------ |
+| `GH_TOKEN` | Secret | PAT do admin com permissão `repo` para bypass da branch protection |
 
-**Secrets do repositório (obrigatórios para CI/CD):**
-
-| Nome          | Tipo     | Descrição                                                                |
-| ------------- | -------- | ------------------------------------------------------------------------ |
-| `GH_TOKEN`    | Secret   | PAT do admin com permissão `repo` para bypass da branch protection       |
-
-> O `GH_TOKEN` é necessário para que o Semantic Release consiga fazer push de tags e do CHANGELOG.md diretamente na `main`, contornando a regra de PR obrigatório. O token deve pertencer a um admin do repositório (com `enforce_admins: false`).
-
-**Variáveis e Secrets necessários por environment (deploy):**
-
-| Nome          | Tipo     | Descrição                                            |
-| ------------- | -------- | ---------------------------------------------------- |
-| `VPS_HOST`    | Variable | IP ou hostname da VPS Hostinger                      |
-| `VPS_USER`    | Variable | Usuário SSH para deploy                              |
-| `VPS_SSH_KEY` | Secret   | Chave SSH privada para acesso à VPS                  |
-| `DOMAIN`      | Variable | Domínio do ambiente (ex: `www.debugsoftware.com.br`) |
+> O `GH_TOKEN` é necessário para que o Semantic Release consiga fazer push de tags e do CHANGELOG.md diretamente na `main`, contornando a regra de PR obrigatório. Nenhum valor de credencial deve ser armazenado no repositório.
 
 ## Design
 
@@ -276,7 +241,6 @@ O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Clou
 | Componente        | Tecnologia                          |
 | ----------------- | ----------------------------------- |
 | Cloud             | Hostinger VPS (Ubuntu)              |
-| IP                | 82.29.62.198                        |
 | Container Runtime | Docker + Docker Compose             |
 | Reverse Proxy     | Traefik                             |
 | TLS               | Let's Encrypt (via Traefik)         |
@@ -284,32 +248,14 @@ O site é hospedado com domínio customizado `www.debugsoftware.com.br` via Clou
 | Registry          | GitHub Container Registry (ghcr.io) |
 | Web Server        | Nginx (Alpine)                      |
 
-O deploy é executado automaticamente após cada release bem-sucedida (production), ou manualmente via GitHub Actions (`workflow_dispatch`) para staging ou production.
-
-### Configuração Necessária
-
-Antes do primeiro deploy, configure o secret `VPS_SSH_KEY` nos dois environments (staging e production) em:
-
-> Settings → Environments → [staging/production] → Add secret → `VPS_SSH_KEY`
-
-A chave deve ser a chave SSH privada com acesso `root` à VPS.
+O deploy operacional é realizado manualmente por uma conexão privada Tailscale. O GitHub Actions apenas valida o arquivo Compose e não acessa a VPS nem altera containers.
 
 ### Estrutura na VPS
 
 ```
-/opt/debug-software-website/
-├── staging/
-│   └── docker-compose.yml
-└── production/
-    └── docker-compose.yml
+/opt/docker/debug-software-website/docker-compose.yml
 ```
 
-### Pré-requisitos na VPS
+Esse é o caminho futuro do Compose na VPS. A definição versionada correspondente está em `deploy/production/docker-compose.yml` e utiliza somente a rede externa `proxy`, sem publicar portas no host.
 
-```bash
-# Rede do Traefik (se ainda não existir)
-docker network create traefik-network
-
-# Diretórios de deploy
-mkdir -p /opt/debug-software-website/{staging,production}
-```
+Antes de qualquer alteração de DNS, a operação deve validar no origin que o container está saudável, que o router do Traefik está ativo para `www.debugsoftware.com.br` e que o certificado TLS foi emitido corretamente. Somente após essas verificações o DNS poderá ser alterado.

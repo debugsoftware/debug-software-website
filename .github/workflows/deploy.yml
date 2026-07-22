@@ -1,157 +1,76 @@
-name: Deploy
+name: Validate production Compose
 
 on:
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Ambiente de deploy"
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
-  workflow_run:
-    workflows: ["Release"]
-    types:
-      - completed
-    branches: [main]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: read
 
 jobs:
-  deploy-manual:
-    name: Deploy to ${{ inputs.environment }}
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    environment: ${{ inputs.environment }}
+  validate-compose:
+    name: Validate production Compose
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Get latest version tag
-        id: version
+      - name: Validate Compose syntax
+        run: docker compose -f deploy/production/docker-compose.yml config --quiet
+
+      - name: Validate production constraints
+        shell: bash
         run: |
-          TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "latest")
-          echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          set -euo pipefail
 
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
-            echo "=== Deploy ${{ inputs.environment }} - v${{ steps.version.outputs.tag }} ==="
+          config_file="${RUNNER_TEMP}/production-compose.json"
+          docker compose -f deploy/production/docker-compose.yml config --format json > "${config_file}"
 
-            # Login no GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          python3 - "${config_file}" <<'PY'
+          import json
+          import sys
 
-            # Pull da imagem
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+          with open(sys.argv[1], encoding="utf-8") as config_file:
+              config = json.load(config_file)
 
-            # Deploy com docker-compose
-            cd /opt/debug-software-website/${{ inputs.environment }} || mkdir -p /opt/debug-software-website/${{ inputs.environment }}
+          errors = []
+          services = config.get("services", {})
+          website = services.get("website", {})
+          labels = website.get("labels", {})
+          networks = website.get("networks", {})
+          proxy = config.get("networks", {}).get("proxy", {})
 
-            cat > docker-compose.yml << 'COMPOSE'
-            services:
-              web:
-                image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
-                container_name: debug-software-website-${{ inputs.environment }}
-                restart: unless-stopped
-                networks:
-                  - traefik-network
-                labels:
-                  - "traefik.enable=true"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}.rule=Host(`${{ vars.DOMAIN }}`)"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}.entrypoints=websecure"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}.tls.certresolver=letsencrypt"
-                  - "traefik.http.services.debug-website-${{ inputs.environment }}.loadbalancer.server.port=80"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}-http.rule=Host(`${{ vars.DOMAIN }}`)"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}-http.entrypoints=web"
-                  - "traefik.http.routers.debug-website-${{ inputs.environment }}-http.middlewares=redirect-to-https-${{ inputs.environment }}"
-                  - "traefik.http.middlewares.redirect-to-https-${{ inputs.environment }}.redirectscheme.scheme=https"
-                  - "traefik.http.middlewares.redirect-to-https-${{ inputs.environment }}.redirectscheme.permanent=true"
-            networks:
-              traefik-network:
-                external: true
-            COMPOSE
+          image = website.get("image", "")
+          if image.rsplit(":", 1)[-1] == "latest":
+              errors.append("a imagem não pode usar a tag latest")
+          if image != "ghcr.io/debugsoftware/debug-software-website:1.2.0":
+              errors.append("a imagem deve estar fixada na versão 1.2.0")
+          if website.get("ports"):
+              errors.append("o serviço website não pode publicar portas no host")
+          if set(services) != {"website"}:
+              errors.append("website deve ser o único serviço declarado")
+          if set(networks) != {"proxy"}:
+              errors.append("website deve estar conectado somente à rede proxy")
+          if proxy.get("external") is not True:
+              errors.append("a rede proxy deve ser externa")
+          if labels.get("traefik.enable") != "true":
+              errors.append("o serviço deve estar habilitado no Traefik")
+          if labels.get("traefik.docker.network") != "proxy":
+              errors.append("traefik.docker.network deve apontar para proxy")
+          if labels.get("traefik.http.routers.debug-software-website.rule") != "Host(`www.debugsoftware.com.br`)":
+              errors.append("o domínio do router está incorreto")
+          if labels.get("traefik.http.routers.debug-software-website.entrypoints") != "websecure":
+              errors.append("o entrypoint do router deve ser websecure")
+          if labels.get("traefik.http.routers.debug-software-website.tls") != "true":
+              errors.append("o TLS do router deve estar habilitado")
+          if labels.get("traefik.http.routers.debug-software-website.tls.certresolver") != "letsencrypt":
+              errors.append("o resolver ACME deve ser letsencrypt")
+          if labels.get("traefik.http.services.debug-software-website.loadbalancer.server.port") != "80":
+              errors.append("a porta interna do serviço Traefik deve ser 80")
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d
-
-            # Cleanup de imagens antigas
-            docker image prune -f
-
-            echo "=== Deploy ${{ inputs.environment }} concluído! ==="
-
-  deploy-auto-production:
-    name: Auto Deploy to Production
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get latest version tag
-        id: version
-        run: |
-          TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "latest")
-          echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Deploy to Production VPS via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
-            echo "=== Auto Deploy Production - v${{ steps.version.outputs.tag }} ==="
-
-            # Login no GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-            # Pull da imagem
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
-
-            # Deploy com docker-compose
-            mkdir -p /opt/debug-software-website/production
-            cd /opt/debug-software-website/production
-
-            cat > docker-compose.yml << 'COMPOSE'
-            services:
-              web:
-                image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
-                container_name: debug-software-website-production
-                restart: unless-stopped
-                networks:
-                  - traefik-network
-                labels:
-                  - "traefik.enable=true"
-                  - "traefik.http.routers.debug-website-production.rule=Host(`${{ vars.DOMAIN }}`)"
-                  - "traefik.http.routers.debug-website-production.entrypoints=websecure"
-                  - "traefik.http.routers.debug-website-production.tls.certresolver=letsencrypt"
-                  - "traefik.http.services.debug-website-production.loadbalancer.server.port=80"
-                  - "traefik.http.routers.debug-website-production-http.rule=Host(`${{ vars.DOMAIN }}`)"
-                  - "traefik.http.routers.debug-website-production-http.entrypoints=web"
-                  - "traefik.http.routers.debug-website-production-http.middlewares=redirect-to-https-production"
-                  - "traefik.http.middlewares.redirect-to-https-production.redirectscheme.scheme=https"
-                  - "traefik.http.middlewares.redirect-to-https-production.redirectscheme.permanent=true"
-            networks:
-              traefik-network:
-                external: true
-            COMPOSE
-
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d
-
-            # Cleanup de imagens antigas
-            docker image prune -f
-
-            echo "=== Auto Deploy Production concluído! ==="
+          if errors:
+              raise SystemExit("\n".join(f"- {error}" for error in errors))
+          PY

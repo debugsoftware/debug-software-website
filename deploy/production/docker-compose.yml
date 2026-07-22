@@ -1,0 +1,28 @@
+name: debug-software-website
+
+services:
+  website:
+    image: ghcr.io/debugsoftware/debug-software-website:1.2.0
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.debug-software-website.rule=Host(`www.debugsoftware.com.br`)"
+      - "traefik.http.routers.debug-software-website.entrypoints=websecure"
+      - "traefik.http.routers.debug-software-website.tls=true"
+      - "traefik.http.routers.debug-software-website.tls.certresolver=letsencrypt"
+      - "traefik.http.services.debug-software-website.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true
