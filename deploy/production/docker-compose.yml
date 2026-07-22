@@ -22,6 +22,14 @@ services:
       - "traefik.http.routers.debug-software-website.tls=true"
       - "traefik.http.routers.debug-software-website.tls.certresolver=letsencrypt"
       - "traefik.http.services.debug-software-website.loadbalancer.server.port=80"
+      - "traefik.http.routers.debug-software-website-apex.rule=Host(`debugsoftware.com.br`)"
+      - "traefik.http.routers.debug-software-website-apex.entrypoints=websecure"
+      - "traefik.http.routers.debug-software-website-apex.tls=true"
+      - "traefik.http.routers.debug-software-website-apex.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.debug-software-website-apex.middlewares=debug-software-website-apex-to-www"
+      - "traefik.http.middlewares.debug-software-website-apex-to-www.redirectregex.regex=^https?://debugsoftware[.]com[.]br/(.*)"
+      - "traefik.http.middlewares.debug-software-website-apex-to-www.redirectregex.replacement=https://www.debugsoftware.com.br/$${1}"
+      - "traefik.http.middlewares.debug-software-website-apex-to-www.redirectregex.permanent=true"
 
 networks:
   proxy:
