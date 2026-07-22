@@ -110,7 +110,9 @@ Executado apenas no **merge para main**:
 
 Em pull requests, o workflow apenas valida `deploy/production/docker-compose.yml`. O deploy somente pode ser iniciado manualmente por `workflow_dispatch` na branch `main`, após informar `deploy-production` e obter a aprovação do environment `production`.
 
-O job manual entra na rede privada pelo Tailscale, valida o acesso SSH de `rodrigo`, instala o Compose de forma atômica e autentica temporariamente no GHCR privado com o `GITHUB_TOKEN`. A configuração Docker temporária é removida após o pull. O workflow não altera DNS ou Cloudflare.
+O job manual autentica no GHCR privado somente no runner, baixa explicitamente a imagem `linux/amd64` e registra digest, sistema operacional e arquitetura. Em seguida, entra na rede privada pelo Tailscale, valida o acesso SSH de `rodrigo` e transfere a imagem com `docker save | gzip | ssh | docker load`. Nenhuma credencial do registry é enviada à VPS.
+
+O Compose anterior recebe um backup exclusivo por execução antes da substituição. Se qualquer etapa posterior falhar, o workflow preserva o Compose que falhou e executa rollback automático somente do serviço `website`. A configuração Docker temporária e as credenciais SSH do runner são removidas mesmo em caso de falha. O workflow não altera DNS ou Cloudflare.
 
 As validações cobrem a sintaxe do Compose, a imagem fixa, a ausência de portas publicadas, o uso exclusivo da rede externa `proxy`, o router principal e o redirecionamento permanente do apex para `www`.
 
