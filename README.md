@@ -124,14 +124,16 @@ PR → validação do Compose → merge → aprovação → deploy manual via Ta
 
 **Pré-requisitos do environment `production`:**
 
-| Secret                      | Finalidade                                                  |
-| --------------------------- | ----------------------------------------------------------- |
-| `TAILSCALE_OAUTH_CLIENT_ID` | OAuth client com escopo `auth_keys` e acesso à tag `tag:ci` |
-| `TAILSCALE_OAUTH_SECRET`    | Credencial do OAuth client do Tailscale                     |
-| `VPS_SSH_PRIVATE_KEY`       | Chave restrita ao usuário `rodrigo`                         |
-| `VPS_SSH_KNOWN_HOSTS`       | Host key previamente validada de `srv723452`                |
+| Secret                      | Finalidade                                             |
+| --------------------------- | ------------------------------------------------------ |
+| `TAILSCALE_OAUTH_CLIENT_ID` | OAuth client do Tailscale usado na troca de token OIDC |
+| `TAILSCALE_AUDIENCE`        | Audience aceita pelo provedor OIDC do Tailscale        |
+| `VPS_SSH_PRIVATE_KEY`       | Chave restrita ao usuário `rodrigo`                    |
+| `VPS_SSH_KNOWN_HOSTS`       | Host key previamente validada de `100.112.16.100`      |
 
-O tailnet deve permitir que `tag:ci` alcance `srv723452` somente na porta SSH necessária. Os secrets são consumidos pelo runner efêmero e nenhum valor deve ser gravado no repositório.
+O job `deploy-production` recebe exclusivamente a permissão `id-token: write` para autenticar no Tailscale por OIDC; nenhum `oauth-secret` é necessário. A política OIDC deve restringir o subject a `repo:debugsoftware/debug-software-website:environment:production` e usar a audience configurada em `TAILSCALE_AUDIENCE`.
+
+A ACL do tailnet deve permitir que `tag:ci` acesse somente `100.112.16.100:22`. Os secrets são consumidos pelo runner efêmero e nenhum valor deve ser gravado no repositório.
 
 ### Versionamento Semântico
 
