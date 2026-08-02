@@ -37,14 +37,24 @@ export default function HeroSection() {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <motion.img
-          src="/manus-storage/hero-bg_c7515ff2.png"
-          alt=""
-          className="w-full h-full object-cover opacity-50"
+        <motion.picture
+          className="block w-full h-full"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 1.5, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
-        />
+          transition={{
+            duration: 1.5,
+            ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+          }}
+        >
+          <source srcSet="/images/hero-bg_e6c8eda5.webp" type="image/webp" />
+          <img
+            src="/images/hero-bg_c7515ff2.png"
+            alt=""
+            className="w-full h-full object-cover opacity-50"
+            decoding="async"
+            fetchPriority="high"
+          />
+        </motion.picture>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a]/30 via-[#0a0a1a]/70 to-[#0a0a1a]" />
       </div>
 
@@ -71,7 +81,12 @@ export default function HeroSection() {
       <motion.div
         className="absolute bottom-1/4 right-[10%] w-64 h-64 bg-[#00b4d8]/10 rounded-full blur-[100px]"
         animate={{ opacity: [0.5, 0.9, 0.5], scale: [1, 1.08, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
       />
 
       {/* Content */}
@@ -93,9 +108,10 @@ export default function HeroSection() {
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
             <img
-              src="/manus-storage/logo-debug_6f1e67d3.png"
+              src="/images/logo-debug_6f1e67d3.png"
               alt="Debug Software"
               className="relative w-24 h-24 md:w-32 md:h-32 mx-auto drop-shadow-[0_0_20px_rgba(123,47,247,0.3)]"
+              decoding="async"
             />
           </motion.div>
 
@@ -116,8 +132,8 @@ export default function HeroSection() {
             className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed font-light"
             variants={fadeUpItem}
           >
-            Inteligência artificial e engenharia de software para empresas
-            que precisam crescer sem multiplicar equipe.
+            Inteligência artificial e engenharia de software para empresas que
+            precisam crescer sem multiplicar equipe.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -128,7 +144,10 @@ export default function HeroSection() {
             <motion.button
               onClick={handleCTA}
               className="px-8 py-4 text-base font-semibold text-white rounded-xl debug-gradient hover:opacity-90 transition-all duration-200 shadow-[0_4px_40px_rgba(123,47,247,0.25)]"
-              whileHover={{ scale: 1.03, boxShadow: "0 8px 50px rgba(123,47,247,0.35)" }}
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 8px 50px rgba(123,47,247,0.35)",
+              }}
               whileTap={{ scale: 0.97 }}
             >
               Agende uma conversa técnica
@@ -153,7 +172,10 @@ export default function HeroSection() {
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, y: [0, 8, 0] }}
-        transition={{ opacity: { delay: 1.5, duration: 0.5 }, y: { duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 } }}
+        transition={{
+          opacity: { delay: 1.5, duration: 0.5 },
+          y: { duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 },
+        }}
       >
         <div className="w-5 h-9 rounded-full border border-white/15 flex items-start justify-center p-1.5">
           <div className="w-1 h-2.5 rounded-full bg-white/30" />

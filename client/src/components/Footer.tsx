@@ -17,7 +17,8 @@ export default function Footer() {
   useEffect(() => {
     const handleOpenPrivacy = () => setShowPrivacy(true);
     window.addEventListener("open-privacy-policy", handleOpenPrivacy);
-    return () => window.removeEventListener("open-privacy-policy", handleOpenPrivacy);
+    return () =>
+      window.removeEventListener("open-privacy-policy", handleOpenPrivacy);
   }, []);
 
   return (
@@ -41,9 +42,11 @@ export default function Footer() {
             <div className="md:col-span-4">
               <div className="flex items-center gap-3 mb-5">
                 <img
-                  src="/manus-storage/logo-debug_6f1e67d3.png"
+                  src="/images/logo-debug_6f1e67d3.png"
                   alt="Debug Software"
                   className="w-8 h-8"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <span className="font-display text-lg font-bold text-white tracking-tight">
                   Debug<span className="gradient-text">Software</span>

@@ -279,3 +279,9 @@ Esse é o caminho do Compose na VPS. A definição versionada correspondente est
 O Compose também cria um router TLS para `debugsoftware.com.br` que redireciona permanentemente para `https://www.debugsoftware.com.br`, preservando o caminho solicitado.
 
 Antes de qualquer alteração de DNS, o workflow valida no origin que o container está saudável, que o router do Traefik responde para `www.debugsoftware.com.br` e que o certificado TLS é válido. Somente depois dessas verificações o DNS poderá ser alterado em uma operação separada e explicitamente autorizada.
+
+### Imagens e cache
+
+As imagens do frontend ficam em `client/public/images` e usam nomes versionados. As imagens maiores são entregues com `<picture>`: WebP para navegadores compatíveis e PNG como fallback. O Nginx envia `Cache-Control: public, max-age=31536000, immutable` somente para `/images/` e para os bundles com hash em `/assets/`. Como o domínio usa o proxy da Cloudflare, esses formatos estáticos podem ser armazenados no cache da borda sem uma regra global de “Cache Everything”; o HTML da aplicação permanece fora dessa política de cache longo.
+
+O CI confirma que todos os arquivos estão no build, rejeita referências residuais a `/manus-storage/` e valida o tipo de conteúdo e o cabeçalho de cache no container Nginx.
