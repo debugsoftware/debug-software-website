@@ -2,12 +2,16 @@ name: debug-software-website
 
 services:
   website:
-    image: ghcr.io/debugsoftware/debug-software-website:1.2.0
+    image: ghcr.io/debugsoftware/debug-software-website:1.2.1
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:80/"]
+      test:
+        [
+          "CMD-SHELL",
+          'html="$$(wget -qO- http://127.0.0.1:80/)" && printf "%s" "$$html" | grep -Fq "<title>Debug Software - Soluções em IA e Automações</title>" && ! printf "%s" "$$html" | grep -Fq "Welcome to nginx!"',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

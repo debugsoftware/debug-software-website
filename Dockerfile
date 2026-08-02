@@ -24,8 +24,11 @@ FROM nginx:alpine AS runner
 # Copia configuração customizada do Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copia o build estático
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Remove a página padrão do Nginx antes de publicar somente o frontend do Vite.
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia exclusivamente os arquivos estáticos gerados pelo Vite.
+COPY --from=builder /app/dist/public/ /usr/share/nginx/html/
 
 EXPOSE 80
 
