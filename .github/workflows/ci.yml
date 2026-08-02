@@ -70,3 +70,42 @@ jobs:
 
       - name: Run Tests
         run: pnpm test -- --run --passWithNoTests
+
+  docker-smoke:
+    name: Docker smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --tag debug-software-website:ci .
+
+      - name: Serve the Vite build from Nginx
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          container_name="debug-software-website-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          cleanup() {
+            docker rm --force "${container_name}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker run --detach --rm --name "${container_name}" --publish 127.0.0.1::80 \
+            debug-software-website:ci >/dev/null
+          port=$(docker port "${container_name}" 80/tcp | sed -n 's/.*:\([0-9][0-9]*\)$/\1/p')
+          test -n "${port}"
+
+          for attempt in $(seq 1 30); do
+            if html=$(curl --fail --silent --show-error "http://127.0.0.1:${port}/"); then
+              if printf '%s' "${html}" | \
+                grep -Fq '<title>Debug Software - Soluções em IA e Automações</title>' && \
+                ! printf '%s' "${html}" | grep -Fq 'Welcome to nginx!'; then
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+
+          printf 'O container não serviu o frontend esperado.\n' >&2
+          exit 1
