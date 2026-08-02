@@ -17,7 +17,7 @@ permissions:
 
 env:
   COMPOSE_FILE: deploy/production/docker-compose.yml
-  IMAGE: ghcr.io/debugsoftware/debug-software-website:1.2.1
+  IMAGE: ghcr.io/debugsoftware/debug-software-website:1.2.2
   REMOTE_HOST: 100.112.16.100
   REMOTE_USER: rodrigo
   REMOTE_DIR: /opt/docker/debug-software-website
@@ -59,8 +59,8 @@ jobs:
           image = website.get("image", "")
           if image.rsplit(":", 1)[-1] == "latest":
               errors.append("a imagem não pode usar a tag latest")
-          if image != "ghcr.io/debugsoftware/debug-software-website:1.2.1":
-              errors.append("a imagem deve estar fixada na versão 1.2.1")
+          if image != "ghcr.io/debugsoftware/debug-software-website:1.2.2":
+              errors.append("a imagem deve estar fixada na versão 1.2.2")
           if website.get("ports"):
               errors.append("o serviço website não pode publicar portas no host")
           if set(services) != {"website"}:
@@ -295,6 +295,14 @@ jobs:
                 if printf "%s" "${origin_html}" | \
                   grep -Fq "<title>Debug Software - Soluções em IA e Automações</title>" && \
                   ! printf "%s" "${origin_html}" | grep -Fq "Welcome to nginx!"; then
+                image_headers=$(curl --fail --silent --show-error --head \
+                  --connect-timeout 5 --max-time 15 \
+                  --resolve www.debugsoftware.com.br:443:127.0.0.1 \
+                  https://www.debugsoftware.com.br/images/hero-bg_e6c8eda5.webp)
+                printf "%s\n" "${image_headers}" | \
+                  grep -Eqi "^content-type: image/webp"
+                printf "%s\n" "${image_headers}" | \
+                  grep -Eqi "^cache-control: public, max-age=31536000, immutable"
                 redirect_target=$(curl --silent --show-error --connect-timeout 5 --max-time 15 \
                   --resolve debugsoftware.com.br:443:127.0.0.1 \
                   https://debugsoftware.com.br/deploy-verification \

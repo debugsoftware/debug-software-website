@@ -2,7 +2,7 @@ name: debug-software-website
 
 services:
   website:
-    image: ghcr.io/debugsoftware/debug-software-website:1.2.1
+    image: ghcr.io/debugsoftware/debug-software-website:1.2.2
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

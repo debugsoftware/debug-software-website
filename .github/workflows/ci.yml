@@ -53,6 +53,37 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Validate bundled images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          assets=(
+            images/about-company_88e9dbd7.webp
+            images/about-company_d2be6fbe.png
+            images/ai-solutions_274f3406.png
+            images/ai-solutions_b584aee5.webp
+            images/automation_147f6880.png
+            images/automation_63803d5b.webp
+            images/custom-solutions_012a6597.webp
+            images/custom-solutions_09fa5ce3.png
+            images/debug-icon_ed58b1b6.webp
+            images/hero-bg_c7515ff2.png
+            images/hero-bg_e6c8eda5.webp
+            images/logo-debug_6f1e67d3.png
+            images/logo-debug_912ef8b6.png
+          )
+
+          for asset in "${assets[@]}"; do
+            test -s "dist/public/${asset}"
+          done
+
+          if grep --recursive --fixed-strings --include='*.html' --include='*.js' \
+            '/manus-storage/' dist/public; then
+            printf 'O build ainda contém referência ao armazenamento temporário.\n' >&2
+            exit 1
+          fi
+
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -96,16 +127,44 @@ jobs:
           port=$(docker port "${container_name}" 80/tcp | sed -n 's/.*:\([0-9][0-9]*\)$/\1/p')
           test -n "${port}"
 
+          frontend_ready=false
           for attempt in $(seq 1 30); do
             if html=$(curl --fail --silent --show-error "http://127.0.0.1:${port}/"); then
               if printf '%s' "${html}" | \
                 grep -Fq '<title>Debug Software - Soluções em IA e Automações</title>' && \
                 ! printf '%s' "${html}" | grep -Fq 'Welcome to nginx!'; then
-                exit 0
+                frontend_ready=true
+                break
               fi
             fi
             sleep 2
           done
 
-          printf 'O container não serviu o frontend esperado.\n' >&2
-          exit 1
+          if test "${frontend_ready}" != true; then
+            printf 'O container não serviu o frontend esperado.\n' >&2
+            exit 1
+          fi
+
+          assets=(
+            images/about-company_88e9dbd7.webp
+            images/about-company_d2be6fbe.png
+            images/ai-solutions_274f3406.png
+            images/ai-solutions_b584aee5.webp
+            images/automation_147f6880.png
+            images/automation_63803d5b.webp
+            images/custom-solutions_012a6597.webp
+            images/custom-solutions_09fa5ce3.png
+            images/debug-icon_ed58b1b6.webp
+            images/hero-bg_c7515ff2.png
+            images/hero-bg_e6c8eda5.webp
+            images/logo-debug_6f1e67d3.png
+            images/logo-debug_912ef8b6.png
+          )
+
+          for asset in "${assets[@]}"; do
+            headers=$(curl --fail --silent --show-error --head \
+              "http://127.0.0.1:${port}/${asset}")
+            printf '%s\n' "${headers}" | grep --ignore-case --quiet '^Content-Type: image/'
+            printf '%s\n' "${headers}" | grep --ignore-case --quiet \
+              '^Cache-Control: public, max-age=31536000, immutable'
+          done

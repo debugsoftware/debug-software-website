@@ -10,17 +10,20 @@ const values = [
   {
     icon: Shield,
     title: "Infraestrutura Resiliente",
-    description: "Monitoramento 24/7, SLAs definidos e arquitetura para alta disponibilidade.",
+    description:
+      "Monitoramento 24/7, SLAs definidos e arquitetura para alta disponibilidade.",
   },
   {
     icon: Zap,
     title: "Entrega Iterativa",
-    description: "Ciclos curtos com feedback contínuo — você vê resultado antes do prazo.",
+    description:
+      "Ciclos curtos com feedback contínuo — você vê resultado antes do prazo.",
   },
   {
     icon: Users,
     title: "Extensão do Seu Time",
-    description: "Operamos como parceiros técnicos, não como fornecedores distantes.",
+    description:
+      "Operamos como parceiros técnicos, não como fornecedores distantes.",
   },
 ];
 
@@ -61,17 +64,28 @@ export default function AboutSection() {
             initial={{ opacity: 0, x: -50, scale: 0.95 }}
             whileInView={{ opacity: 1, x: 0, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
+            transition={{
+              duration: 0.8,
+              ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+            }}
           >
             <div className="relative rounded-2xl overflow-hidden group">
               {/* Gradient border effect */}
               <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-[#7b2ff7]/30 via-transparent to-[#00b4d8]/20 group-hover:from-[#7b2ff7]/40 group-hover:to-[#00b4d8]/30 transition-all duration-500" />
               <div className="relative rounded-2xl overflow-hidden">
-                <img
-                  src="/manus-storage/about-company_d2be6fbe.png"
-                  alt="Debug Software - Inovação e Engenharia"
-                  className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                />
+                <picture className="block">
+                  <source
+                    srcSet="/images/about-company_88e9dbd7.webp"
+                    type="image/webp"
+                  />
+                  <img
+                    src="/images/about-company_d2be6fbe.png"
+                    alt="Debug Software - Inovação e Engenharia"
+                    className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a1a]/40 to-transparent" />
               </div>
             </div>
@@ -82,9 +96,15 @@ export default function AboutSection() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
+              transition={{
+                duration: 0.6,
+                delay: 0.4,
+                ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+              }}
             >
-              <p className="text-3xl font-bold font-display gradient-text">+20</p>
+              <p className="text-3xl font-bold font-display gradient-text">
+                +20
+              </p>
               <p className="text-xs text-white/50 mt-0.5">anos de engenharia</p>
             </motion.div>
           </motion.div>
@@ -95,7 +115,10 @@ export default function AboutSection() {
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
+            transition={{
+              duration: 0.8,
+              ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+            }}
           >
             <span className="inline-block px-4 py-1.5 text-xs font-medium tracking-wider uppercase text-[#00b4d8]/80 border border-[#00b4d8]/15 rounded-full mb-5">
               Sobre Nós
@@ -106,14 +129,16 @@ export default function AboutSection() {
               <span className="gradient-text">sistemas que escalam</span>
             </h2>
             <p className="text-white/50 text-base leading-relaxed mb-4">
-              A Debug Software é especializada em inteligência artificial e automação de
-              processos. Com mais de 20 anos em engenharia de software, transformamos
-              operações complexas em sistemas inteligentes e escaláveis.
+              A Debug Software é especializada em inteligência artificial e
+              automação de processos. Com mais de 20 anos em engenharia de
+              software, transformamos operações complexas em sistemas
+              inteligentes e escaláveis.
             </p>
             <p className="text-white/50 text-base leading-relaxed mb-10">
-              Nossa missão: capacitar empresas a operar com máxima eficiência usando IA
-              generativa, processamento de dados e integração de sistemas — sempre com
-              código limpo, arquitetura sólida e entrega profissional.
+              Nossa missão: capacitar empresas a operar com máxima eficiência
+              usando IA generativa, processamento de dados e integração de
+              sistemas — sempre com código limpo, arquitetura sólida e entrega
+              profissional.
             </p>
 
             {/* Values — glass cards with stagger animation */}
@@ -124,7 +149,7 @@ export default function AboutSection() {
               whileInView="visible"
               viewport={{ once: true, margin: "-60px" }}
             >
-              {values.map((value) => (
+              {values.map(value => (
                 <motion.div
                   key={value.title}
                   className="group/card flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.12] hover:bg-white/[0.05] hover:shadow-[0_4px_30px_rgba(123,47,247,0.06)] transition-all duration-300 cursor-default"
@@ -132,7 +157,10 @@ export default function AboutSection() {
                   whileHover={{ x: 6, transition: { duration: 0.2 } }}
                 >
                   <div className="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0 group-hover/card:border-[#7b2ff7]/25 group-hover/card:bg-white/[0.08] group-hover/card:scale-110 transition-all duration-300">
-                    <value.icon size={16} className="text-[#00b4d8] group-hover/card:text-[#00d4ff] transition-colors duration-300" />
+                    <value.icon
+                      size={16}
+                      className="text-[#00b4d8] group-hover/card:text-[#00d4ff] transition-colors duration-300"
+                    />
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-white mb-0.5 group-hover/card:text-white transition-colors duration-300">

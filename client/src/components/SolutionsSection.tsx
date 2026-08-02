@@ -12,7 +12,8 @@ const solutions = [
     title: "Inteligência Artificial",
     description:
       "Modelos de IA sob medida para automatizar decisões, análises preditivas e processamento de linguagem natural — integrados diretamente ao fluxo do seu negócio.",
-    image: "/manus-storage/ai-solutions_274f3406.png",
+    imageWebp: "/images/ai-solutions_b584aee5.webp",
+    imagePng: "/images/ai-solutions_274f3406.png",
     offset: "lg:translate-y-0",
     gradient: "from-[#7b2ff7]/20 to-[#a855f7]/10",
   },
@@ -21,7 +22,8 @@ const solutions = [
     title: "Automações Inteligentes",
     description:
       "Fluxos que eliminam tarefas repetitivas, integram sistemas e garantem operação 24/7 sem intervenção manual. Menos erro humano, mais velocidade.",
-    image: "/manus-storage/automation_147f6880.png",
+    imageWebp: "/images/automation_63803d5b.webp",
+    imagePng: "/images/automation_147f6880.png",
     offset: "lg:translate-y-8",
     gradient: "from-[#00b4d8]/20 to-[#7b2ff7]/10",
   },
@@ -30,7 +32,8 @@ const solutions = [
     title: "Soluções Sob Demanda",
     description:
       "Software com arquitetura escalável, integrações complexas e interfaces que simplificam o que antes exigia equipes inteiras para operar.",
-    image: "/manus-storage/custom-solutions_09fa5ce3.png",
+    imageWebp: "/images/custom-solutions_012a6597.webp",
+    imagePng: "/images/custom-solutions_09fa5ce3.png",
     offset: "lg:translate-y-16",
     gradient: "from-[#a855f7]/20 to-[#00b4d8]/10",
   },
@@ -85,11 +88,12 @@ export default function SolutionsSection() {
             Nossas Soluções
           </span>
           <h2 className="text-3xl md:text-5xl font-bold font-display text-white mb-5 leading-tight">
-            Engenharia que <span className="gradient-text">elimina</span> gargalos
+            Engenharia que <span className="gradient-text">elimina</span>{" "}
+            gargalos
           </h2>
           <p className="text-white/45 text-lg leading-relaxed">
-            Combinamos inteligência artificial com engenharia de software de alto nível
-            para criar sistemas que operam por você.
+            Combinamos inteligência artificial com engenharia de software de
+            alto nível para criar sistemas que operam por você.
           </p>
         </motion.div>
 
@@ -104,20 +108,30 @@ export default function SolutionsSection() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-60px" }}
-              whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }}
+              whileHover={{
+                y: -8,
+                transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] },
+              }}
             >
               {/* Gradient border glow on hover */}
-              <div className={`absolute -inset-1 rounded-2xl bg-gradient-to-br ${solution.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`} />
+              <div
+                className={`absolute -inset-1 rounded-2xl bg-gradient-to-br ${solution.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`}
+              />
 
               {/* Card surface */}
               <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] group-hover:border-white/[0.15] rounded-2xl overflow-hidden transition-all duration-500 group-hover:bg-white/[0.05] group-hover:shadow-[0_20px_80px_rgba(123,47,247,0.12)]">
                 {/* Card Image */}
                 <div className="relative h-44 overflow-hidden">
-                  <img
-                    src={solution.image}
-                    alt={solution.title}
-                    className="w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-110 transition-all duration-700 ease-out"
-                  />
+                  <picture className="block w-full h-full">
+                    <source srcSet={solution.imageWebp} type="image/webp" />
+                    <img
+                      src={solution.imagePng}
+                      alt={solution.title}
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-110 transition-all duration-700 ease-out"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/60 to-transparent" />
 
                   {/* Shimmer overlay on hover */}
@@ -126,7 +140,10 @@ export default function SolutionsSection() {
                   {/* Icon floating */}
                   <div className="absolute bottom-4 left-5">
                     <div className="w-11 h-11 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/[0.1] flex items-center justify-center group-hover:border-[#7b2ff7]/40 group-hover:bg-white/[0.12] group-hover:scale-110 transition-all duration-300">
-                      <solution.icon size={20} className="text-[#00b4d8] group-hover:text-[#00d4ff] transition-colors duration-300" />
+                      <solution.icon
+                        size={20}
+                        className="text-[#00b4d8] group-hover:text-[#00d4ff] transition-colors duration-300"
+                      />
                     </div>
                   </div>
                 </div>
@@ -143,7 +160,10 @@ export default function SolutionsSection() {
                   {/* CTA link — appears on hover */}
                   <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-[#00b4d8]/0 group-hover:text-[#00b4d8] transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                     <span>Saiba mais</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight
+                      size={14}
+                      className="group-hover:translate-x-1 transition-transform duration-300"
+                    />
                   </div>
                 </div>
               </div>
